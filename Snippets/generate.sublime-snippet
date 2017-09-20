@@ -1,0 +1,12 @@
+<snippet>
+	<description>Generate</description>
+	<content><![CDATA[generate
+	genvar ${1:i};
+	for ($1 = 0; $1 < ${2:n}; $1 = $1 + 1)
+	begin:${3:identifier}
+		$0
+	end
+endgenerate]]></content>
+	<tabTrigger>generate</tabTrigger>
+	<scope>source.systemverilog</scope>
+</snippet>

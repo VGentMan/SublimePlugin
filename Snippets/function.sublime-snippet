@@ -1,0 +1,9 @@
+<snippet>
+   <name>Function SystemVerilog</name>
+   <content><![CDATA[function ${1:name};
+   	input ${2:a}; //input name;
+	${0:/*code*/};
+endfunction]]></content>
+    <tabTrigger>function</tabTrigger>
+    <scope>source.systemverilog</scope>
+</snippet>

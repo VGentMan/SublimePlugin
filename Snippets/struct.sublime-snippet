@@ -1,0 +1,9 @@
+<snippet>
+   <name>Structure SystemVerilog</name>
+   <content><![CDATA[struct packed {
+   	logic ${1:a}; //struct name 1;
+   	logic ${2:b}; //struct name 2;
+   	} ${0:name};]]></content>
+    <tabTrigger>struct</tabTrigger>
+    <scope>source.systemverilog</scope>
+</snippet>

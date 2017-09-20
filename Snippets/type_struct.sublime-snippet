@@ -1,0 +1,10 @@
+<snippet>
+   <name>TypeDef Struct SystemVerilog</name>
+   <content><![CDATA[typedef struct {
+   	logic ${1:a}; //struct name 1;
+   	logic ${2:b}; //struct name 2;
+   	} ${3:name};
+   	${3:name} ${0:name};]]></content>
+    <tabTrigger>typedef</tabTrigger>
+    <scope>source.systemverilog</scope>
+</snippet>

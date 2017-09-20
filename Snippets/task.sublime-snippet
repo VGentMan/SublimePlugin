@@ -1,0 +1,12 @@
+<snippet>
+   <name>Task SystemVerilog</name>
+   <content><![CDATA[task ${1:name};
+   	input ${2:a}; //input name;
+   	output ${3:b}; //output name;
+   	begin
+   		${0:/*code*/};
+   	end	
+endtask]]></content>
+    <tabTrigger>task</tabTrigger>
+    <scope>source.systemverilog</scope>
+</snippet>

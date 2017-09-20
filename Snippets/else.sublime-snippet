@@ -1,0 +1,8 @@
+<snippet>
+	<description>Else Condition</description>
+	<content><![CDATA[else begin
+	${0:/* code */}
+end]]></content>
+	<tabTrigger>else</tabTrigger>
+	<scope>source.systemverilog</scope>
+</snippet>

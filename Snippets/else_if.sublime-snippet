@@ -1,0 +1,14 @@
+<snippet>
+	<description>Else If Condition</description>
+	<content><![CDATA[if(${1:/* condition */}) begin
+	${2:/* code */}
+end
+else if(${3:/* condition */}) begin
+	${4:/* code */}
+end
+else begin
+	${0:/* code */}
+end]]></content>
+	<tabTrigger>elif</tabTrigger>
+	<scope>source.systemverilog</scope>
+</snippet>
