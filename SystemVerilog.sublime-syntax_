@@ -1,0 +1,214 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+name: SystemVerilog
+file_extensions:
+- sv
+- v
+- svh
+- vh
+- vt
+scope: source.systemverilog
+variables:
+  var_name: '[A-Za-z_][A-Za-z_0-9]*'
+contexts:
+  main:
+    - match: \s*\b(local\s+|protected\s+)?\s*\b(function)\b(\s+automatic)?
+      captures:
+        1: keyword.control.systemverilog
+        2: keyword.control.systemverilog
+        3: keyword.control.systemverilog
+      push:
+        - meta_scope: meta.function.systemverilog
+        - match: ;
+          pop: true
+        - match: '\b({{var_name}}*)\s*(?=\(|;)'
+          captures:
+            1: entity.name.function.systemverilog
+        - match: \(
+          set:
+            - meta_scope: meta.function.port.systemverilog
+            - match: \)\s*;
+              pop: true
+            - include: port
+            - include: base-grammar
+        - include: base-grammar
+    - match: \s*\b(local\s+|protected\s+)?\s*\b(task)\b(\s+automatic)?
+      captures:
+        1: keyword.control.systemverilog
+        2: keyword.control.systemverilog
+        3: keyword.control.systemverilog
+      push:
+        - meta_scope: meta.task.systemverilog
+        - match: ;
+          pop: true
+        - match: '\b({{var_name}}*)\s*(?=\(|;)'
+          captures:
+            1: entity.name.function.systemverilog
+        - match: \(
+          set:
+            - meta_scope: meta.task.port.systemverilog
+            - match: \)\s*;
+              pop: true
+            - include: port
+            - include: base-grammar
+        - include: base-grammar
+    - match: '\s*(module)\s+\b({{var_name}})\b'
+      captures:
+        1: keyword.control.systemverilog
+        2: entity.name.type.module.systemverilog
+      push:
+        - meta_scope: meta.module.systemverilog
+        - match: ;
+          captures:
+            1: entity.name.function.systemverilog
+          pop: true
+        - include: module-param
+        - include: port
+        - include: base-grammar
+    - include: base-grammar
+  #================================================================
+  base-grammar:
+    - include: comments
+    - include: keywords
+    - include: systemverilog_type
+    - include: operators
+    - include: constants
+    - include: strings
+
+  comments:
+    - match: /\*
+      captures:
+        0: punctuation.definition.comment.systemverilog
+      push:
+        - meta_scope: comment.block.systemverilog
+        - match: \*/
+          pop: true
+    - match: (//).*$\n?
+      scope: comment.line.double-slash.systemverilog
+      captures:
+        1: punctuation.definition.comment.systemverilog
+
+  constants:
+    - match: '(\b\d+)?''(s?[bB]\s*[0-1xXzZ?][0-1_xXzZ?]*|s?[oO]\s*[0-7xXzZ?][0-7_xXzZ?]*|s?[dD]\s*[0-9xXzZ?][0-9_xXzZ?]*|s?[hH]\s*[0-9a-fA-FxXzZ?][0-9a-fA-F_xXzZ?]*)((e|E)(\+|-)?[0-9]+)?(?!''|\w)'
+      scope: constant.numeric.systemverilog
+    - match: "'[01xXzZ]"
+      scope: constant.numeric.bit.systemverilog
+    - match: '\b((\d[\d_]*)(e|E)(\+|-)?[0-9]+)\b'
+      scope: constant.numeric.exp.systemverilog
+    - match: '\b(\d[\d_]*)\b'
+      scope: constant.numeric.decimal.systemverilog
+    - match: \b(\d+(fs|ps|ns|us|ms|s)?)\b
+      scope: constant.numeric.time.systemverilog
+    - match: '\b([A-Z][A-Z0-9_]*)\b'
+      scope: constant.other.net.systemverilog
+    - match: (`ifdef|`ifndef)\s+(\w+)
+      captures:
+        1: constant.other.preprocessor.systemverilog
+        2: support.variable.systemverilog
+    - match: '`(celldefine|else|elsif|endcelldefine|endif|include|line|resetall|timescale|undef|begin_\w+|end_\w+|remove_\w+|restore_\w+)\b'
+      scope: constant.other.preprocessor.systemverilog
+    - match: '``\b({{var_name}})\b'
+      scope: variable.macro.systemverilog
+    - match: '`\b({{var_name}})\b'
+      scope: constant.other.define.systemverilog
+    - match: \b(null)\b
+      scope: support.constant.systemverilog
+
+  functions:
+    - match: \b(\w+)(?=\s*\()
+      scope: support.function.generic.systemverilog
+
+  keywords:
+    - match: \b(automatic|cell|config|deassign|defparam|design|disable|edge|endconfig|endgenerate|endspecify|endtable|generate|genvar|ifnone|incdir|instance|liblist|library|macromodule|negedge|noshowcancelled|posedge|pulsestyle_onevent|pulsestyle_ondetect|scalared|showcancelled|specify|specparam|table|use|vectored)\b
+      scope: keyword.other.systemverilog
+    - match: \b(initial|always|begin|fork|wait|force|release|assign|always_comb|always_ff|always_latch|forever|repeat|while|for|if|iff|else|case|casex|casez|default|endcase|return|break|continue|do|foreach|with|inside|dist|clocking|cover|coverpoint|property|bins|binsof|illegal_bins|ignore_bins|randcase|matches|solve|assert|assume|before|expect|cross|ref|first_match|srandom|struct|packed|final|alias|tagged|extern|throughout|timeprecision|timeunit|priority|type|union|uwire|wait_order|triggered|randsequence|import|export|context|pure|intersect|wildcard|within|new|typedef|enum|this|super|forkjoin|unique|unique0|priority|soft)\b
+      scope: keyword.control.systemverilog
+    - match: \b(end|endtask|endmodule|endfunction|endprimitive|endclass|endpackage|endsequence|endprogram|endclocking|endproperty|endgroup|endinterface|endchecker|join|join_any|join_none)\b(\s*(:)\s*(\w+))?
+      scope: keyword.control.systemverilog
+    - match: \b(and|nand|nor|or|xor|xnor|buf|not|bufif[01]|notif[01]|r?[npc]mos|tran|r?tranif[01]|pullup|pulldown)\b
+      scope: support.type.systemverilog
+
+  module-binding:
+    - match: '\.({{var_name}})\s*\('
+      captures:
+        1: support.function.port.systemverilog
+      push: module-binding-signal
+    - match: \.({{var_name}})\s*
+      scope: support.function.port.implicit.systemverilog
+
+  module-binding-signal:
+    - match: \(
+      push: module-binding-signal
+    - match: \)
+      pop: true
+    - include: constants
+    - include: comments
+    - include: operators
+    - include: strings
+    - include: constants
+
+  module-param:
+    - match: (#)\s*\(
+      captures:
+        1: keyword.operator.param.systemverilog
+      push:
+        - meta_scope: meta.module-param.systemverilog
+        - match: \)
+          pop: true
+        - include: comments
+        - include: constants
+        - include: operators
+        - include: strings
+
+  operators:
+    - match: '(==|===|!=|!==|<=|>=|<|>)'
+      scope: keyword.operator.comparison.systemverilog
+    - match: '(=)'
+      scope: keyword.operator.assignment.systemverilog
+    - match: '(\-|\+|\*|\/|<<|>>|%)'
+      scope: keyword.operator.arithmetic.systemverilog
+    - match: '(!|&&|\|\||\bor\b)'
+      scope: keyword.operator.logical.systemverilog
+    - match: '(&|\||\^|~)'
+      scope: keyword.operator.bitwise.systemverilog
+    - match: '(\{|''\{|})'
+      scope: keyword.operator.array.systemverilog
+    - match: '(\?|:)'
+      scope: keyword.operator.ternary.systemverilog
+    - match: '(#|@)'
+      scope: keyword.operator.other.systemverilog
+
+  port:
+    - match: \s*\b(output|input|inout)\b
+      scope: support.type.systemverilog
+
+  systemverilog_type:
+    - match: '\s*\b(tri|tri[01]|supply[01]|var|wire|wand|triand|wor|trior|trireg|reg|integer|int|longint|shortint|logic|bit|byte|shortreal|chandle|string|time|realtime|real|process|void|event|semaphore|mailbox)\b'
+      scope: storage.type.systemverilog
+    - match: '\b(signed|unsigned|small|medium|large|supply[01]|strong[01]|pull[01]|weak[01]|highz[01])\b'
+      scope: storage.modifier.systemverilog
+
+  strings:
+    - match: '"'
+      captures:
+        0: punctuation.definition.string.begin.systemverilog
+      push:
+        - meta_scope: string.quoted.double.systemverilog
+        - match: '"'
+          captures:
+            0: punctuation.definition.string.end.systemverilog
+          pop: true
+        - match: \\.
+          scope: constant.character.escape.systemverilog
+        - match: |
+            (?x)%
+            (\d+\$)?                             # field (argument #)
+            [#0\- +']*                           # flags
+            [,;:_]?                              # separator character (AltiVec)
+            ((-?\d+)|\*(-?\d+\$)?)?              # minimum field width
+            (\.((-?\d+)|\*(-?\d+\$)?)?)?         # precision
+            (hh|h|ll|l|j|t|z|q|L|vh|vl|v|hv|hl)? # length modifier
+            [bdiouxXhHDOUeEfFgGaACcSspnmt%]      # conversion type
+          scope: constant.other.placeholder.systemverilog
+
