@@ -1,17 +1,8 @@
-//==================================================================================================
-//Author        : Vasiliy Yashchuk 0.takefive.0@gmail.com
-//File          : test.sv
-//Create        : 2017-09-23 13:22:35
-//Last Modified : 2017-09-23 13:22:39
-//Revision      : 1
-//
-//Description   :
-//==================================================================================================
 module test (
     input a,
-    output b
+    output [1:0] b
     );
 
-assign a = b;
+assign a = b + 1;
 
 endmodule

@@ -3,33 +3,39 @@ import sublime_plugin
 import re
 import os
 import time
-import traceback
+import sys
 import subprocess
+import shutil
 
-class VerilogAddHeaderCommand(sublime_plugin.TextCommand):
+def file_ext(file_name):
+    ext = os.path.splitext(os.path.split(file_name)[1])[1]   
+    return ext
 
+class VerilogBackupCommand(sublime_plugin.TextCommand):
+
+    """create backup verilog files"""
+        
     def run(self, edit):
         file_name = self.view.file_name()
-        plugin_settings = sublime.load_settings("SublimePlugin.sublime-settings")
-        file_name_without_path = os.path.split(file_name)[1]
-        author = plugin_settings.get("Author")
-        current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        self.view.insert(edit, 0, "\n//" + "=" * 98 + "\n")
-        self.view.insert(edit, 0, "\n//Description" + " " * 3 + ": ")
-        self.view.insert(edit, 0, "\n//")
-        self.view.insert(edit, 0, "\n//Revision" + " " * 6 + ": " + "0")
-        self.view.insert(edit, 0, "\n//Last Modified" + " " + ": " + current_time)
-        self.view.insert(edit, 0, "\n//Create" + " " * 8 + ": " + current_time)
-        self.view.insert(edit, 0, "\n//File" + " " * 10 + ": " + file_name_without_path)
-        self.view.insert(edit, 0, "\n//Author" + " " * 8 + ": " + author)
-        self.view.insert(edit, 0, "//" + "=" * 98)
-        sublime.status_message("File header added")
+        file_only_name = os.path.splitext(os.path.split(file_name)[1])[0]
+        current_data = time.strftime('%d_%m_%Y', time.localtime())
+        current_time = time.strftime('(%H_%M_%S)', time.localtime())
+        backup_path = os.path.split(file_name)[0] + '\\Backup\\' + current_data
+        try:
+            os.makedirs(backup_path)
+        except:
+            pass
+        backup_name = backup_path + '\\' + file_only_name + current_time + file_ext(file_name)     
+        if not os.path.isfile(backup_name):    
+            shutil.copyfile(file_name, backup_name)
+        sublime.message_dialog('Бэкап успешно сделан!')
+        
+        
+class VerilogAddHeaderCommand(sublime_plugin.TextCommand):
 
-class VeriogAddModTimeCommand(sublime_plugin.TextCommand):
+    """add header comment to file"""
 
-    """change the last modified time"""
-
-    def run(self, edit):
+    def header_modifier(self, edit):
         modify_time_pattern = r"(?<=^//Last Modified : )[\d\D]*?$"
         modify_revision_pattern = r"(?<=^//Revision      : )[\d]*?$"
         revision_region = self.view.find(modify_revision_pattern, 0)
@@ -39,29 +45,78 @@ class VeriogAddModTimeCommand(sublime_plugin.TextCommand):
         revision_data = int(self.view.substr(revision_region))
         self.view.replace(edit, revision_region, str(revision_data+1))
 
+    def run(self, edit):
+        file_name = self.view.file_name()
+        plugin_settings = sublime.load_settings("SublimePlugin.sublime-settings")
+        file_name_without_path = os.path.split(file_name)[1]
+        author = plugin_settings.get("Author")
+        current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        header = \
+        "//" + "-" * 100 + \
+        "\n//Author        : " + author +\
+        "\n//File          : " + file_name_without_path +\
+        "\n//Create        : " + current_time +\
+        "\n//Last Modified : " + current_time +\
+        "\n//Revision      : " + "0" +\
+        "\n//" +\
+        "\n//Description   : " +\
+        "\n//" + "-" * 100 + "\n"       
+        header_pattern = r"(?<=^//)[-]{100}"
+        if self.view.find(header_pattern, 0).empty():    
+            self.view.insert(edit, 0, header)
+            sublime.status_message("File header added")
+        else:
+            self.header_modifier(edit)
+            sublime.status_message("File header was changed!")
+        
+
+
 class VerilogAlignCommand(sublime_plugin.TextCommand):
 
     def run(self, edit):
-        txtr <= self.view.sel()[0]
-        lines <= self.view.lines(txtr)
-        for line in lines:
-            f <= self.view.find("(\s+)=(\s+)", line.begin())
-            if f.begin() != -1:
+        align_pattern = r"(?<=[\w+])(\s*<=\s*)(?=\w+;)"
+        align_txt = self.view.sel()[0]
+        lines = self.view.lines(align_txt)
+        for line in reversed(lines):
+            f = self.view.find(align_pattern, line.begin())
+            if not f.empty():
                 self.view.replace(edit, f, " <= ")
-            print(f)
+        
+        align_txt = self.view.sel()[0]
+        lines = self.view.lines(align_txt)
+        wrap = []
+        for line in lines:
+            f = self.view.find(" <= ", line.begin())
+            wrap.append(f.begin() - line.begin())       
+        wrap_max = max(wrap)
+        ind_max = wrap.index(wrap_max)
+        ind = len(wrap) - 1
+        for line in reversed(lines):
+            f = self.view.find(" <= ", line.begin())
+            pattern = " " * (wrap_max - wrap[ind]) + " <= "
+            if not f.empty():
+                if ind != ind_max:
+                    self.view.replace(edit, f, pattern)
+            ind -=1    
+
 
 class RunCompileCommand(sublime_plugin.TextCommand):
 
     def run(self, edit):
         file_name = self.view.file_name()
-        Comp_dir = r"C:\altera\13.0\quartus\bin"
+        plugin_settings = sublime.load_settings("SublimePlugin.sublime-settings")
+        Comp_dir = plugin_settings.get("Quartus dir")
         cmd = 'quartus_map Test --analyze_file ' + '"' + file_name + '"'
-        print(cmd)
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, cwd=Comp_dir)
-        # stdoutdata, stderrdata = p.communicate()
         stdoutdata, stderrdata = p.communicate()
         ss = str(stdoutdata)
         ss = ss.replace("b'", "")
         ss = ss.split("\\r\\n")
-        for d in ss:
-            print(d)
+        if 'successful' in ss[-6]:
+            sublime.message_dialog(ss[-6])
+        else:
+            sublime.error_message(ss[-6])
+
+
+
+        
