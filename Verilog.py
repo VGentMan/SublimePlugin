@@ -109,13 +109,13 @@ class RunCompileCommand(sublime_plugin.TextCommand):
         cmd = 'quartus_map Test --analyze_file ' + '"' + file_name + '"'
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, cwd=Comp_dir)
         stdoutdata, stderrdata = p.communicate()
-        ss = str(stdoutdata)
-        ss = ss.replace("b'", "")
-        ss = ss.split("\\r\\n")
-        if 'successful' in ss[-6]:
-            sublime.message_dialog(ss[-6])
+        cmd_outp = str(stdoutdata)
+        cmd_outp = cmd_outp.replace("b'", "")
+        cmd_outp = cmd_outp.split("\\r\\n")
+        if 'successful' in cmd_outp[-6]:
+            sublime.message_dialog(cmd_outp[-6])
         else:
-            sublime.error_message(ss[-6])
+            sublime.error_message(cmd_outp[-6])
 
 
 
